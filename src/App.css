@@ -1,38 +1,93 @@
 .App {
-  text-align: center;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+}
+
+.product-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.card-img-container {
+  height: 200px;
+  overflow: hidden;
+  background-color: #f8f9fa;
+  display: flex;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
 }
 
-.App-link {
-  color: #61dafb;
+.product-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+.placeholder-image {
+  width: 100%;
+  height: 100%;
+}
+
+.product-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  height: 2.5rem;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.product-description {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 0.5rem;
+  height: 4.5rem;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+.product-meta {
+  min-height: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.product-details {
+  font-size: 0.85rem;
+}
+
+.price-tag {
+  font-weight: 700;
+  color: #28a745;
+}
+
+footer {
+  margin-top: auto;
+}
+
+@media (max-width: 767px) {
+  .card-img-container {
+    height: 180px;
   }
-  to {
-    transform: rotate(360deg);
+  
+  .product-title {
+    height: auto;
+    -webkit-line-clamp: 2;
+  }
+  
+  .product-description {
+    height: auto;
+    -webkit-line-clamp: 3;
   }
 }

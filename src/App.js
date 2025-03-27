@@ -12,8 +12,11 @@ import {
 } from 'react-bootstrap'
 import { FaSearch, FaFilter } from 'react-icons/fa'
 import './App.css'
+import { useTranslation } from './context/TranslationContext'
+import { loadCSV } from './utils/csvLoader'
 
 function App() {
+    const t = useTranslation()
     const [products, setProducts] = useState([])
     const [filteredProducts, setFilteredProducts] = useState([])
     const [loading, setLoading] = useState(true)
@@ -26,38 +29,68 @@ function App() {
     })
 
     useEffect(() => {
-        // Load and parse the CSV file
-        Papa.parse('/csv/Wholesale Products - Sheet.csv', {
+        // Update document title
+        document.title = t('Wholesale Abruzzo - Premium Italian Products')
+
+        // Try the main approach with Papa.parse and process.env.PUBLIC_URL
+        const csvPath =
+            process.env.PUBLIC_URL + '/csv/Wholesale Products - Sheet.csv'
+        console.log('Attempting to load CSV from:', csvPath)
+
+        // First attempt with Papa.parse direct download
+        Papa.parse(csvPath, {
             download: true,
             header: true,
             skipEmptyLines: true,
             complete: (results) => {
-                const productsData = results.data
+                console.log('CSV parsing successful:', results)
+                processCSVData(results.data)
+            },
+            error: (error) => {
+                console.error(
+                    'Error with direct Papa.parse, trying fetch approach:',
+                    error
+                )
 
-                // Extract unique categories and target customers
-                const uniqueCategories = [
-                    ...new Set(
-                        productsData
-                            .map((product) => product.Category)
-                            .filter(Boolean)
-                    ),
-                ]
-                const uniqueTargetCustomers = [
-                    ...new Set(
-                        productsData
-                            .map((product) => product.Target_Customer)
-                            .filter(Boolean)
-                    ),
-                ]
-
-                setProducts(productsData)
-                setFilteredProducts(productsData)
-                setCategories(uniqueCategories)
-                setTargetCustomers(uniqueTargetCustomers)
-                setLoading(false)
+                // Fallback to fetch approach if direct parsing fails
+                loadCSV(csvPath)
+                    .then((data) => {
+                        console.log('CSV loaded with fetch approach:', data)
+                        processCSVData(data)
+                    })
+                    .catch((fetchError) => {
+                        console.error(
+                            'Both CSV loading methods failed:',
+                            fetchError
+                        )
+                        setLoading(false)
+                    })
             },
         })
-    }, [])
+    }, [t])
+
+    // Helper function to process the CSV data
+    const processCSVData = (productsData) => {
+        // Extract unique categories and target customers
+        const uniqueCategories = [
+            ...new Set(
+                productsData.map((product) => product.Category).filter(Boolean)
+            ),
+        ]
+        const uniqueTargetCustomers = [
+            ...new Set(
+                productsData
+                    .map((product) => product.Target_Customer)
+                    .filter(Boolean)
+            ),
+        ]
+
+        setProducts(productsData)
+        setFilteredProducts(productsData)
+        setCategories(uniqueCategories)
+        setTargetCustomers(uniqueTargetCustomers)
+        setLoading(false)
+    }
 
     useEffect(() => {
         // Apply filters when filter state changes
@@ -124,7 +157,7 @@ function App() {
     if (loading) {
         return (
             <Container className='text-center my-5'>
-                <h2>Loading product catalog...</h2>
+                <h2>{t('Loading product catalog...')}</h2>
             </Container>
         )
     }
@@ -133,9 +166,11 @@ function App() {
         <div className='App'>
             <header className='bg-dark text-white py-4 mb-4'>
                 <Container>
-                    <h1 className='display-5'>Wholesale Product Catalog</h1>
+                    <h1 className='display-5'>
+                        {t('Wholesale Product Catalog')}
+                    </h1>
                     <p className='lead'>
-                        Browse our selection of premium Italian products
+                        {t('Browse our selection of premium Italian products')}
                     </p>
                 </Container>
             </header>
@@ -146,7 +181,7 @@ function App() {
                         <div className='mb-3'>
                             <InputGroup>
                                 <Form.Control
-                                    placeholder='Search products...'
+                                    placeholder={t('Search products...')}
                                     name='searchTerm'
                                     value={filters.searchTerm}
                                     onChange={handleSearchChange}
@@ -164,10 +199,10 @@ function App() {
                                 value={filters.category}
                                 onChange={handleFilterChange}
                             >
-                                <option value=''>All Categories</option>
+                                <option value=''>{t('All Categories')}</option>
                                 {categories.map((category, index) => (
                                     <option key={index} value={category}>
-                                        {category}
+                                        {t(category)}
                                     </option>
                                 ))}
                             </Form.Select>
@@ -180,10 +215,12 @@ function App() {
                                 value={filters.targetCustomer}
                                 onChange={handleFilterChange}
                             >
-                                <option value=''>All Customer Types</option>
+                                <option value=''>
+                                    {t('All Customer Types')}
+                                </option>
                                 {targetCustomers.map((customer, index) => (
                                     <option key={index} value={customer}>
-                                        {customer}
+                                        {t(customer)}
                                     </option>
                                 ))}
                             </Form.Select>
@@ -195,7 +232,7 @@ function App() {
                             className='w-100'
                             onClick={clearFilters}
                         >
-                            Clear Filters
+                            {t('Clear Filters')}
                         </Button>
                     </Col>
                 </Row>
@@ -205,7 +242,7 @@ function App() {
                         <div className='d-flex justify-content-between align-items-center'>
                             <h2 className='h4'>
                                 <FaFilter className='me-2' />
-                                Products ({filteredProducts.length})
+                                {t('Products')} ({filteredProducts.length})
                             </h2>
                         </div>
                     </Col>
@@ -226,7 +263,7 @@ function App() {
                                     ) : (
                                         <div className='placeholder-image d-flex justify-content-center align-items-center bg-light'>
                                             <span className='text-muted'>
-                                                No image available
+                                                {t('No image available')}
                                             </span>
                                         </div>
                                     )}
@@ -238,42 +275,42 @@ function App() {
                                     <div className='product-meta'>
                                         {product.Category && (
                                             <span className='badge bg-info me-2'>
-                                                {product.Category}
+                                                {t(product.Category)}
                                             </span>
                                         )}
                                         {product.Target_Customer && (
                                             <span className='badge bg-secondary'>
-                                                {product.Target_Customer}
+                                                {t(product.Target_Customer)}
                                             </span>
                                         )}
                                     </div>
                                     <Card.Text className='product-description mt-2'>
                                         {product.Description ||
-                                            'No description available'}
+                                            t('No description available')}
                                     </Card.Text>
                                     <hr />
                                     <div className='product-details'>
                                         {product.Code && (
                                             <p className='mb-1'>
-                                                <strong>Code:</strong>{' '}
+                                                <strong>{t('Code')}:</strong>{' '}
                                                 {product.Code}
                                             </p>
                                         )}
                                         {product.Size && (
                                             <p className='mb-1'>
-                                                <strong>Size:</strong>{' '}
+                                                <strong>{t('Size')}:</strong>{' '}
                                                 {product.Size}
                                             </p>
                                         )}
                                         {product.Stagionatura && (
                                             <p className='mb-1'>
-                                                <strong>Aging:</strong>{' '}
+                                                <strong>{t('Aging')}:</strong>{' '}
                                                 {product.Stagionatura}
                                             </p>
                                         )}
                                         {product.Expiring_Date && (
                                             <p className='mb-1'>
-                                                <strong>Expires:</strong>{' '}
+                                                <strong>{t('Expires')}:</strong>{' '}
                                                 {product.Expiring_Date}
                                             </p>
                                         )}
@@ -291,10 +328,10 @@ function App() {
 
                 {filteredProducts.length === 0 && (
                     <div className='text-center py-5'>
-                        <h3>No products match your search</h3>
-                        <p>Try adjusting your filters or search term</p>
+                        <h3>{t('No products match your search')}</h3>
+                        <p>{t('Try adjusting your filters or search term')}</p>
                         <Button variant='primary' onClick={clearFilters}>
-                            Clear All Filters
+                            {t('Clear All Filters')}
                         </Button>
                     </div>
                 )}
@@ -303,8 +340,8 @@ function App() {
             <footer className='bg-dark text-white py-4 mt-auto'>
                 <Container className='text-center'>
                     <p className='mb-0'>
-                        © {new Date().getFullYear()} Wholesale Abruzzo - Premium
-                        Italian Products
+                        © {new Date().getFullYear()}{' '}
+                        {t('Wholesale Abruzzo - Premium Italian Products')}
                     </p>
                 </Container>
             </footer>
